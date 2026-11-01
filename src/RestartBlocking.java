@@ -41,6 +41,8 @@ public class RestartBlocking {
     int num_tuple = 50000;
     double max_value = 50.0f;
     AtomicInteger tasks_finished;
+    AtomicInteger total_retries = new AtomicInteger(0);
+    AtomicInteger max_retries = new AtomicInteger(0);
 
     public RestartBlocking(){
         tasks_finished = new AtomicInteger(0);
@@ -116,6 +118,7 @@ public class RestartBlocking {
         }
         stop = System.currentTimeMillis();
         System.out.println("[DONE] Task execution after roughly "+(stop-start)+" ms finished: "+b.tasks_finished+" of "+num_taks);
+        System.out.println("Total retries: "+b.total_retries+", max retries for one task: "+b.max_retries);
     }
 
     /**
@@ -161,6 +164,8 @@ public class RestartBlocking {
                     }
                     con.commit();
                     committed = true;
+                    total_retries.addAndGet(attempts);
+                    max_retries.accumulateAndGet(attempts, Math::max);
                     int n = tasks_finished.incrementAndGet();
                     System.out.println("Done task " + task + " after " + attempts
                             + " retries. Finisher number " + n);
